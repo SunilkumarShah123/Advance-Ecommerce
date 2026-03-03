@@ -1,0 +1,18 @@
+.sidebar{
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+}
+
+.list-group-item:hover{
+    background-color: rgb(121, 121, 42) !important;
+}
+
+#page-content-wrapper.with-size{
+    margin-left: 250px;
+}
+#page-content-wrapper.with-resize{
+    margin-left: 0px;
+}
