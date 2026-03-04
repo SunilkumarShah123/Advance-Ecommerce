@@ -1,3 +1,4 @@
+from unicodedata import category
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
@@ -32,9 +33,32 @@ def add_category(request):
     return Response({'msg':'invalid category'},status=401)
     
     
- 
+@api_view(['GET'])
+def get_categories(request):
+    categories = Category.objects.all()   
+    serializer = CategorySerializer(categories, many=True)
+    return Response(serializer.data)
   
 
-    
+@api_view(['POST'])
+def add_food_item(request):
+    data = request.data
+
+    try:
+        Food.objects.create(
+            category_id=data.get('category'), 
+            item_name=data.get('item_name'),
+            item_description=data.get('item_description'),
+            item_quantity=data.get('item_quantity'),
+            item_price=data.get('item_price'),
+            image=request.FILES.get('image'),  
+        )
+
+        return Response({'message': 'Food item added successfully'}, status=201)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+      
         
     
