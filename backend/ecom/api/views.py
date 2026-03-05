@@ -2,6 +2,7 @@ from unicodedata import category
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
+from django.db.models import Q
 from .models import *
 
 from .serializers import *
@@ -59,6 +60,17 @@ def add_food_item(request):
     except Exception as e:
         return Response({'error': str(e)}, status=400)
 
-      
+@api_view(['GET'])
+def get_food_items(request):
+    foods = Food.objects.all()   
+    serializer =  FoodSerializer(foods, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def food_search(request):
+    query_keyword=request.GET.get('q','')
+    foods = Food.objects.filter(Q(item_name__icontains=query_keyword))  
+    serializer =  FoodSerializer(foods, many=True)
+    return Response(serializer.data)
         
     
