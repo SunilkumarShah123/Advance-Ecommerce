@@ -8,5 +8,9 @@ urlpatterns = [
     path('add-food-item/',add_food_item,name='add_food_item'),
     path('get-food-items/',get_food_items,name='get_food_items'),
     path('food-search/',food_search,name='food_search'),
+    path('random-food/',random_food,name="random_food"),
+    path('register/',user_register,name="user_register"),
+    path('login/',user_login,name="user_login")
+    
     
 ]

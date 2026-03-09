@@ -1,4 +1,5 @@
 from unicodedata import category
+from django.contrib.auth.hashers import check_password, make_password#encrypt the plain password science normal created User models in model.py will store passowrd plain
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
@@ -6,7 +7,7 @@ from django.db.models import Q
 from .models import *
 
 from .serializers import *
-
+import random #for randomly suffling food items and pick 9 product random and show in home page
 @api_view(['POST'])
 def admin_login(request):
     username = request.data.get('username')
@@ -72,5 +73,84 @@ def food_search(request):
     foods = Food.objects.filter(Q(item_name__icontains=query_keyword))  
     serializer =  FoodSerializer(foods, many=True)
     return Response(serializer.data)
-        
+
+
+@api_view(['GET'])
+def random_food(request):
+    foods = list(Food.objects.all())  
+    random.shuffle(foods)              
+    select_nine_random_foods = foods[:9]
+    serializer = FoodSerializer(select_nine_random_foods, many=True)
+    return Response(serializer.data)
     
+@api_view(['POST'])
+def user_register(request):
+    data = request.data
+
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    phone = data.get('phone')
+    email = data.get('email')
+    password = data.get('password')
+
+    # Check if email exists
+    if User.objects.filter(email=email).exists():
+        return Response(
+            {"error": "User email already exists. Try a different email."},
+            status=400
+        )
+
+    # Check if phone exists (only if your User model has mobile field)
+    if User.objects.filter(mobile=phone).exists():
+        return Response(
+            {"error": "Phone number already exists. Try a different phone."},
+            status=400
+        )
+
+    # Create user
+    user = User.objects.create(
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        mobile=phone,
+        password=make_password(password)
+    )
+
+    return Response(
+        {"msg": "User created successfully"},
+        status=201
+    )
+
+
+@api_view(['POST'])
+def user_login(request):
+    data = request.data
+    identifier = data.get('identifier')
+    password = data.get('password')
+
+    try:
+        user = User.objects.filter(
+            Q(email__iexact=identifier) | Q(mobile=identifier)
+        ).first()
+
+        if user:
+            if check_password(password, user.password):
+                return Response(
+                    {
+                        "msg": f"{user.first_name}, has been logged in successfully",
+                        "userId": user.id,
+                        "userName": f"{user.first_name} {user.last_name}"
+                    },
+                    status=200
+                )
+
+        return Response(
+            {"error": "Invalid User Credentials"},
+            status=401
+        )
+
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=500
+        )
