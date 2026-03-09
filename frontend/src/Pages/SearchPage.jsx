@@ -1,50 +1,41 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { useEffect,useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import PublicLayout from "../Components/PublicLayout";
-import '../Css/home.css'
+import { useState, useEffect } from "react";
 
-const Home = () => {
+const SearchPage = () => {
   const BASEURL = import.meta.env.VITE_DJANGO_BASE_URL;
+
+  const query = new URLSearchParams(useLocation().search).get("q");
+
   const [foodItems, setFood] = useState([]);
 
   useEffect(() => {
     const fetchFood = async () => {
       try {
-     
-        const response = await fetch(`${BASEURL}/api/random-food/`);
+        if (query){
+        const response = await fetch(`${BASEURL}/api/food-search/?q=${query}`);
         const data = await response.json();
         setFood(data);
-        
+        }
       } catch (error) {
         console.log(error);
       }
     };
 
     fetchFood();
-  }, []);{/* empty [ ] in useEffect mean only render the page whenever the page reloads*/ }
+  }, [query]);
+
   return (
-    <>
     <PublicLayout>
-    <section className="hero py-5" style={{ backgroundImage: "url('/images/hero.webp')"}}>
-    <div className="text-center" style={{backgroundColor:"rgba(0,0,0,0.5)",padding:"40px 20px",borderRadius:"10px"}}>
-    <h1>Quick & Hot Food, Delivered to You</h1>
-    <p className="lead">Craving Something Tasty? Let's get it to your door!</p>
-    <form method="GET" action="./search">
-    <div className="d-flex mx-auto" style={{maxWidth:"400px"}}>
-    <input className="form-control" placeholder="Search Right Now . . . ." name="q" style={{borderTopRightRadius:"0px",borderBottomRightRadius:"0px"}} type="text" />
-    <button className="btn btn-warning py-2" style={{borderTopLeftRadius:"0px",borderBottomLeftRadius:"0px"}}>Search</button>
-    </div>
-    </form>
-    </div>
-       {/*section for randomly loading 9 items in each reload  */}
-   </section>
-    <div className="container">
-      <h2 className="text-center mt-3 text-primary">Most Loved Dishes This Month <span className="badge bg-danger">Top Picks</span> </h2>
-      
-      <div className="row mt-4">
+      <div className="container">
+        <h2 className="text-center text-primary mt-4">
+          Search Result For: "{query}"
+        </h2>
+
+        <div className="row mt-4">
           {foodItems.length === 0 ? (
-            <div className="text-center">
+            <div className="mx-auto">
               <h3 className="text-primary">No Such Product Found</h3>
             </div>
           ) : (
@@ -94,14 +85,8 @@ const Home = () => {
           )}
         </div>
       </div>
-
-   <section>
-  
-
-   </section>
     </PublicLayout>
-    </>
   );
 };
 
-export default Home;
+export default SearchPage;

@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react'
 import '../Css/admin.css'
 import { Link } from "react-router-dom"
 import {
   FaEdit,
   FaThLarge,
-  FaUser,
+
   FaChevronUp,
   FaChevronDown,
   FaPlusCircle,
@@ -63,13 +64,12 @@ const AdminSideBar = () => {
           <FaUtensils className='me-2' />
           Food Menu {openMenu.food ? <FaChevronUp /> : <FaChevronDown />}
         </button>
-
         {openMenu.food && (
           <div>
-            <Link className='list-group-item list-group-item-action bg-dark text-light border-0'>
+            <Link to={'/add-food-item'} className='list-group-item list-group-item-action bg-dark text-light border-0'>
               <FaPlusCircle className='me-2' /> Add Food Item
             </Link>
-            <Link className='list-group-item list-group-item-action bg-dark text-light border-0'>
+            <Link to={'/manage-food-item'} className='list-group-item list-group-item-action bg-dark text-light border-0'>
               <FaListAlt className='me-2' /> Manage Food Item
             </Link>
           </div>
