@@ -9,6 +9,8 @@ import ManageFood from './Pages/ManageFood'
 import SearchPage from './Pages/SearchPage'
 import Register from './Components/Register'
 import Login from './Components/Login'
+import DetailPage from './Pages/DetailPage'
+import Cart from './Pages/Cart.jsx'
 
 const App = () => {
   return (
@@ -23,6 +25,8 @@ const App = () => {
       <Route path="/search" element={<SearchPage />} />
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/food/:id" element={<DetailPage />} />
+      <Route path="/cart" element={<Cart />} />
       
     </Routes>
   )

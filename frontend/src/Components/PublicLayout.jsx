@@ -1,5 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
+import { useCartCount } from "../Pages/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaHome,
@@ -28,6 +29,8 @@ const PublicLayout = ({ children }) => {
   const userId = localStorage.getItem("userId");
   const name = localStorage.getItem("userName");
 
+  const { cartCount } = useCartCount();
+
   useEffect(() => {
     if (userId) {
       setIsLoggedIn(true);
@@ -39,12 +42,13 @@ const PublicLayout = ({ children }) => {
     setIsLoggedIn(false);
     localStorage.removeItem("userId");
     localStorage.removeItem("userName");
+    localStorage.removeItem("cartItem")
     navigate("/login");
   };
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div className="container-fluid px-4">
           <Link className="navbar-brand fw-bold" to="/">
             <FaUtensils className="me-2" />
@@ -108,9 +112,12 @@ const PublicLayout = ({ children }) => {
                     </Link>
                   </li>
 
-                  <li className="nav-item">
-                    <Link className="nav-link" to="/cart">
-                      <FaShoppingCart className="me-1" /> Cart
+                  <li className="nav-item me-2">
+                    <Link className="nav-link position-relative" to="/cart">
+                      <FaShoppingCart className="me-1" /> Cart{" "}
+                      <span className="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger">
+                        {cartCount}
+                      </span>
                     </Link>
                   </li>
 
@@ -172,10 +179,7 @@ const PublicLayout = ({ children }) => {
 
       <footer>
         <div className="container my-3">
-          <p
-            className="text-center py-2 text-white"
-            style={{ background: "brown" }}
-          >
+          <p className="text-center py-2 text-dark">
             &copy; 2025 Sunil Kumar Shah. All Right Reserved
           </p>
         </div>

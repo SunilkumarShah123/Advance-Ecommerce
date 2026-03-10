@@ -33,7 +33,7 @@ const SearchPage = () => {
           Search Result For: "{query}"
         </h2>
 
-        <div className="row mt-4">
+        <div className="row mt-4 text-center">
           {foodItems.length === 0 ? (
             <div className="mx-auto">
               <h3 className="text-primary">No Such Product Found</h3>

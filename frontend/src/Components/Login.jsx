@@ -45,7 +45,7 @@ const Login = () => {
         setUserData({
           identifier: "",
           password: "",
-        }); 
+        });
 
         localStorage.setItem("userId", data.userId);
         localStorage.setItem("userName", data.userName);
