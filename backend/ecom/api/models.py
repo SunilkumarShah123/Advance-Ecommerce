@@ -1,6 +1,4 @@
 from django.db import models
-
-
 # Create your models here.
 class User(models.Model):
     first_name = models.CharField(max_length=50)
@@ -31,3 +29,13 @@ class Food(models.Model):
 
     def __str__(self):
         return f"{self.item_name} {self.item_quantity}"
+
+class Order(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    food=models.ForeignKey(Food,on_delete=models.CASCADE)
+    quantity=models.PositiveBigIntegerField(default=1)
+    is_order_placed=models.BooleanField(default=False)
+    order_number=models.CharField(max_length=250,null=True)
+    
+    def __str__(self):
+        return f"{self.user.id} {self.order_number}"

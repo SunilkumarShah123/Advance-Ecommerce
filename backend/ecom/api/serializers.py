@@ -10,3 +10,9 @@ class FoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Food
         fields = '__all__'
+
+class OrderSerializer(serializers.ModelSerializer):
+    food=FoodSerializer()
+    class Meta:
+        model = Order
+        fields = '__all__'

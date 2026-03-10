@@ -1,4 +1,4 @@
-from unicodedata import category
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import check_password, make_password#encrypt the plain password science normal created User models in model.py will store passowrd plain
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -147,6 +147,86 @@ def user_login(request):
         return Response(
             {"error": "Invalid User Credentials"},
             status=401
+        )
+
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=500
+        )
+    
+@api_view(['GET'])
+def food_detail(request,id):
+    food=get_object_or_404(Food,id=id)
+    serializer=FoodSerializer(food)
+    return Response(serializer.data,status=200)
+
+@api_view(['POST'])
+def add_to_cart(request):
+    user_id=request.data.get('userId')
+    food_id=request.data.get('foodId')
+    try:
+# get_or_create() searches using the fields passed directly as arguments.
+# If we pass quantity=1 normally, Django will also include quantity in the lookup query.
+# That means when quantity changes (e.g., 2,3,4), the lookup will fail and Django
+# will create a new row instead of updating the existing cart item.
+
+# To avoid duplicate rows, we put quantity inside 'defaults'.
+# 'defaults' is only used when Django creates a new object.
+# If the cart item already exists (same user and food), it will return that object
+# and we can simply increase its quantity instead of creating another row.
+
+        order,create=Order.objects.get_or_create(user_id=user_id,food_id=food_id,defaults={'quantity':1,
+        })
+        if not create:
+            order.quantity+=1
+            order.save()
+        return Response({'msg':"Added to cart successfully"}, status=201)
+        
+    except:
+        return Response({"error":"Error during adding to cart"},status=404)
+    
+
+@api_view(['GET'])
+def get_order_items(request,user_id):
+    order_items=Order.objects.filter(user_id=user_id,is_order_placed=False)
+    serializer=OrderSerializer(order_items,many=True)
+    return Response(serializer.data)
+
+@api_view(['PUT'])
+def update_item_quantity(request):
+    item_id=request.data.get("item_id")
+    new_quantity=request.data.get('new_quantity')
+    try:
+       order=Order.objects.get(id=item_id)
+       order.quantity=new_quantity
+       order.save()
+       return Response({"msg":"item updated successfully"},status=200)
+    except:
+       return Response({"error":"error during updating item"},status=404)
+
+@api_view(['DELETE'])
+def remove_item(request,item_id):
+    try:
+       order=Order.objects.get(id=item_id)
+       order.delete()
+       return Response({"msg":"item deleted successfully"},status=200)
+    except:
+       return Response({"error":"error during deleting  item"},status=404)
+
+@api_view(['DELETE'])
+def clear_cart(request, user_id):
+    try:
+        orders = Order.objects.filter(
+            user_id=user_id,
+            is_order_placed=False
+        )
+
+        orders.delete()
+
+        return Response(
+            {"msg": "Items cleared successfully"},
+            status=200
         )
 
     except Exception as e:

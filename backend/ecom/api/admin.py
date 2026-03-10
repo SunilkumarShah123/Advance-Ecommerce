@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Category, Food
+from .models import *
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -26,3 +26,5 @@ class FoodAdmin(admin.ModelAdmin):
     search_fields = ('item_name', 'item_description')
     # Allows editing 'is_available' directly from the list view
     list_editable = ('is_available', 'item_price')
+
+admin.site.register(Order)

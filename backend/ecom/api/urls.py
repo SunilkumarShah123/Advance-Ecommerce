@@ -10,7 +10,14 @@ urlpatterns = [
     path('food-search/',food_search,name='food_search'),
     path('random-food/',random_food,name="random_food"),
     path('register/',user_register,name="user_register"),
-    path('login/',user_login,name="user_login")
+    path('login/',user_login,name="user_login"),
+    path('food/<int:id>/',food_detail,name="food_detail"),
+    path('cart/add/',add_to_cart,name="add_to_cart"),
+    path('cart/<int:user_id>/',get_order_items,name="get_order_items"),
+    path('cart/update-quantity/',update_item_quantity,name="update_item_quantity"),
+    path('cart/delete-item/<int:item_id>/',remove_item,name="remove_item"),
+    path('cart/clear-order/<int:user_id>/',clear_cart,name="clear_cart")
+
     
     
 ]
