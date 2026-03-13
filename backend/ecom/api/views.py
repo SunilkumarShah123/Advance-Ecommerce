@@ -1,11 +1,11 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404,render
 from django.contrib.auth.hashers import check_password, make_password#encrypt the plain password science normal created User models in model.py will store passowrd plain
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from django.db.models import Q
 from .models import *
-
+from django.contrib.auth.decorators import login_required
 from .serializers import *
 import random #for randomly suffling food items and pick 9 product random and show in home page
 @api_view(['POST'])
@@ -161,11 +161,6 @@ def food_detail(request,id):
     serializer=FoodSerializer(food)
     return Response(serializer.data,status=200)
 
-@api_view(['POST'])
-def add_to_cart(request):
-    user_id=request.data.get('userId')
-    food_id=request.data.get('foodId')
-    try:
 # get_or_create() searches using the fields passed directly as arguments.
 # If we pass quantity=1 normally, Django will also include quantity in the lookup query.
 # That means when quantity changes (e.g., 2,3,4), the lookup will fail and Django
@@ -175,16 +170,27 @@ def add_to_cart(request):
 # 'defaults' is only used when Django creates a new object.
 # If the cart item already exists (same user and food), it will return that object
 # and we can simply increase its quantity instead of creating another row.
+@api_view(['POST'])
+def add_to_cart(request):
+    user_id = request.data.get('userId')
+    food_id = request.data.get('foodId')
 
-        order,create=Order.objects.get_or_create(user_id=user_id,food_id=food_id,defaults={'quantity':1,
-        })
-        if not create:
-            order.quantity+=1
+    try:
+        order, created = Order.objects.get_or_create(
+            user_id=user_id,
+            food_id=food_id,
+            is_order_placed=False,
+            defaults={'quantity':1}
+        )
+
+        if not created:
+            order.quantity += 1
             order.save()
+
         return Response({'msg':"Added to cart successfully"}, status=201)
-        
-    except:
-        return Response({"error":"Error during adding to cart"},status=404)
+
+    except Exception as e:
+        return Response({"error":str(e)}, status=400)
     
 
 @api_view(['GET'])
@@ -234,3 +240,110 @@ def clear_cart(request, user_id):
             {"error": str(e)},
             status=500
         )
+
+# This function generates a random 9-digit order number.
+# It checks whether the generated number already exists in the Order table.
+# If the number does not exist, the condition becomes True and the function returns that number.
+# If the number already exists, the condition becomes False and the loop runs again,
+# generating a new random number until a unique order number is found.
+
+def generate_unique_order_number():
+    while True:
+        num=str(random.randint(100000000,999999999))
+        if not Order.objects.filter(order_number=num).exists():
+            return num
+
+@api_view(['POST'])
+def place_order(request):
+    user_id=request.data.get("userId")
+    address=request.data.get("address")
+    payment_mode=request.data.get("paymentMode")
+    card_number=request.data.get("cardNumber")
+    expiry=request.data.get("expiry")
+    cvv=request.data.get("cvv")
+    user=User.objects.get(id=user_id)
+    
+
+    try:
+       order=Order.objects.filter(user_id=user_id,is_order_placed=False)
+       order_number=generate_unique_order_number()
+       order.update(order_number=order_number,is_order_placed=True)
+       
+       OrderAddress.objects.create(
+        user_id=user_id,
+        address=address,
+        order_number=order_number
+       )
+       
+       PaymentDetail.objects.create(
+         user_id=user_id,
+         order_number=order_number,
+         payment_mode=payment_mode,
+         card_no=card_number if payment_mode == "online" else None,
+         expiry_date=expiry if payment_mode == "online" else None,
+         cvv=cvv if payment_mode == "online" else None,
+       )
+
+       return Response({
+        "msg":f"Order has been successfully placed for {user.first_name} with Order No. {order_number} "
+       },status=201)
+    except Exception as e:
+       print("ORDER ERROR:", e)
+       return Response({"error":str(e)},status=404)
+
+@api_view(['GET'])
+def get_orders(request,user_id):
+    try:
+      orders=Order.objects.filter(user_id=user_id)
+      serializer=OrderSerializer(orders,many=True)
+      return Response(serializer.data,status=200)
+    except Exception as e:
+        print("Order Error:",e)
+        return Response({"error":str(e)},status=404)
+
+@api_view(['GET'])
+def get_single_order_detail(request,order_number):
+    try:
+      orders=Order.objects.get(order_number=order_number,is_order_placed=True)
+      print(orders.food.image)
+      serializer=OrderSerializer(orders)
+      return Response(serializer.data,status=200)
+    except Exception as e:
+        print("Order Error:",e)
+        return Response({"error":str(e)},status=404)
+
+@api_view(['GET'])
+def get_single_order_address_detail(request,order_number):
+    try:
+      order_address=OrderAddress.objects.get(order_number=order_number)
+      serializer=OrderAddressSerializer(order_address)
+      return Response(serializer.data,status=200)
+    except Exception as e:
+        print("Order Error:",e)
+        return Response({"error":str(e)},status=404)
+
+def generate_invoices(request, order_number):
+    orders = Order.objects.filter(order_number=order_number, is_order_placed=True)
+    order_address = OrderAddress.objects.get(order_number=order_number)
+
+    grand_total = 0
+    order_data = []
+
+    for i in orders:
+        total = i.food.item_price * i.quantity
+        grand_total += total
+
+        order_data.append({
+            "food": i.food,
+            "order_quantity": i.quantity,
+            "total_price": total
+        })
+
+    context = {
+        "order_number": order_number,
+        "grand_total": grand_total,
+        "address": order_address,
+        "order_data": order_data
+    }
+
+    return render(request, "invoices.html", context)
