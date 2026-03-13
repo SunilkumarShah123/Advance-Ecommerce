@@ -11,6 +11,9 @@ import Register from './Components/Register'
 import Login from './Components/Login'
 import DetailPage from './Pages/DetailPage'
 import Cart from './Pages/Cart.jsx'
+import Payment from './Pages/Payment.jsx'
+import MyOrders from './Pages/MyOrders.jsx'
+import SingleOrderDetail from './Pages/SingleOrderDetail.jsx'
 
 const App = () => {
   return (
@@ -27,7 +30,10 @@ const App = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/food/:id" element={<DetailPage />} />
       <Route path="/cart" element={<Cart />} />
-      
+      <Route path="/payment" element={<Payment />} />
+      <Route path="/my-orders" element={<MyOrders />} />
+      <Route path="/order-details/:order_number" element={<SingleOrderDetail />} />
+
     </Routes>
   )
 }

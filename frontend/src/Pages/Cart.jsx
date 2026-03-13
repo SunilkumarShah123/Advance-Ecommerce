@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCartCount } from "./CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import PublicLayout from "../Components/PublicLayout";
@@ -219,7 +219,7 @@ const Cart = () => {
               </h5>
 
               <div className="my-2">
-                <button className="btn btn-outline-success">
+                <button className="btn btn-outline-success" onClick={()=>(navigate("/payment"))}>
                   Proceed Checkout
                 </button>
               </div>

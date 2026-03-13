@@ -107,7 +107,7 @@ const PublicLayout = ({ children }) => {
               ) : (
                 <>
                   <li className="nav-item">
-                    <Link className="nav-link" to="/orders">
+                    <Link className="nav-link" to="/my-orders">
                       <FaClipboardList className="me-1" /> My Orders
                     </Link>
                   </li>

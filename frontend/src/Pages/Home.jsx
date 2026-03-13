@@ -98,7 +98,7 @@ const Home = () => {
 
                     <div className="card-body">
                       <h5 className="card-title">
-                        <Link to={`/food/${food.id}`}>{food.item_name}</Link>
+                        <Link to={`/food/${food.id}`} className="text-decoration-none">{food.item_name}</Link>
                       </h5>
 
                       <p className="card-text text-muted">
