@@ -42,3 +42,39 @@ class OrderAddressSerializer(serializers.ModelSerializer):
         except PaymentDetail.DoesNotExist:
             return None
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+class OrderSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderAddress
+        fields = ["id","order_number","order_time"]
+
+#sends order address detail + user detail 
+class OrderDetailSerializer(serializers.ModelSerializer):
+    first_name=serializers.CharField(source="user.first_name")
+    last_name=serializers.CharField(source="user.last_name")
+    email=serializers.CharField(source="user.email")
+    mobile=serializers.CharField(source="user.mobile")
+
+    class Meta:
+        model = OrderAddress
+        fields = ["order_number","order_time","order_final_status","address","first_name","last_name","email","mobile"]
+
+#sends the detail of order foods in the order 
+class OrderedFoodDetailSerializer(serializers.ModelSerializer):
+    item_name=serializers.CharField(source="food.item_name")
+    item_price=serializers.CharField(source="food.item_price")
+    image=serializers.CharField(source="food.image")
+    
+    class Meta:
+        model = Order
+        fields = ["item_name","item_price","image"]
+
+#sends the detail of order foods in the order 
+class FoodOrderTrackingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodTracking
+        fields = '__all__'

@@ -49,21 +49,7 @@ class OrderAddress(models.Model):
     order_number = models.CharField(max_length=100, unique=True)
     address = models.TextField()
     order_time = models.DateTimeField(auto_now_add=True)
-
-    ORDER_STATUS = [
-        ("Pending", "Pending"),
-        ("Preparing", "Preparing"),
-        ("Out for Delivery", "Out for Delivery"),
-        ("Delivered", "Delivered"),
-        ("Cancelled", "Cancelled"),
-    ]
-
-    order_final_status = models.CharField(
-        max_length=50,
-        choices=ORDER_STATUS,
-        null=True,blank=True
-    )
-
+    order_final_status = models.CharField(max_length=50,null=True,blank=True)
 
     def __str__(self):
         return f"{self.order_number} ({self.user})"

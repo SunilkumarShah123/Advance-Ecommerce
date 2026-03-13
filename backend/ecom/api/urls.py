@@ -6,6 +6,17 @@ urlpatterns = [
     path('get-categories/',get_categories,name='get_categories'),
     path('add-food-item/',add_food_item,name='add_food_item'),
     path('get-food-items/',get_food_items,name='get_food_items'),
+
+    path('not-confirmed-orders/',order_not_confirmed,name='order_not_confirmed'),
+    path('orders/confirmed/', order_confirmed, name="order_confirmed"),
+    path('orders/preparing/', food_being_prepared, name="food_being_prepared"),
+    path('orders/pickup/', food_pickup, name="food_pickup"),
+    path('orders/delivered/', food_delivered, name="food_delivered"),
+    path('orders/cancelled/', order_cancelled, name="order_cancelled"),
+    path('orders/all/', all_orders, name="all_orders"),
+    path('orders-between-dates/', orders_between_dates,name="orders-between-dates"),
+    path('admin/order-detail/<str:order_number>/', orders_between_dates,name="orders-between-dates"),
+
     path('food-search/',food_search,name='food_search'),
     path('random-food/',random_food,name="random_food"),
     path('register/',user_register,name="user_register"),
@@ -20,7 +31,10 @@ urlpatterns = [
     path('my-orders/<int:user_id>/',get_orders,name="get_orders"),
     path('single-order-detail/<str:order_number>/',get_single_order_detail,name="get_single_order_detail"),
     path('single-order-address-detail/<str:order_number>/',get_single_order_address_detail,name="get_single_order_address_detail"),
-    path('invoices/<str:order_number>/',generate_invoices,name="generate_invoices")
+    path('invoices/<str:order_number>/',generate_invoices,name="generate_invoices"),
+    path('user/<int:user_id>/',get_user_profile,name="get_user_profile"),
+    path('user/update/<int:user_id>/',update_user_profile,name="update_user_profile"),
+    path('user/change-password/<int:user_id>/',change_password,name="change_password"),
 
 
 ]
