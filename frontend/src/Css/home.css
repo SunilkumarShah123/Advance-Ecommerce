@@ -1,17 +1,17 @@
 
 .hero{
-   min-width: 500px;
-   background-repeat: no-repeat;
-   background-size: cover;
-   color:white;
-   /* background-position: center; */
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   
-}
-@media (max-width:768px){
-    .hero{
-        min-height: 300px;
-    }
-}
+    min-width: 500px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color:white;
+    /* background-position: center; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+ }
+ @media (max-width:768px){
+     .hero{
+         min-height: 300px;
+     }
+ }

@@ -1,61 +1,37 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AdminLayout from "../Components/AdminLayout";
 
-const NotConfirmedOrders = () => {
+const ConfirmedOrders = () => {
 
   const [orders, setOrders] = useState([]);
-  const navigate = useNavigate();
-
-  const adminUser = localStorage.getItem("adminUser");
 
   useEffect(() => {
-
-    // 🔐 Admin validation
-    if (!adminUser) {
-      navigate("/admin-login");
-      return;
-    }
-
-    // Fetch orders
-    fetch("http://localhost:8000/api/not-confirmed-orders/")
+    fetch("http://localhost:8000/api/orders/confirmed/")
       .then((res) => res.json())
-      .then((data) => {
-        setOrders(data);
-      })
-      .catch((err) => {
-        console.log("Error fetching orders:", err);
-      });
-
-  }, [adminUser, navigate]);
+      .then((data) => setOrders(data))
+      .catch((err) => console.log("Error fetching orders", err));
+  }, []);
 
   return (
     <AdminLayout>
 
-      {/* Center Title */}
       <div className="text-center mb-3">
         <h4 className="text-primary">
-          <i className="fas fa-list me-2"></i>
-          Detail of Order Not Confirmed
+          <i className="fas fa-check-circle me-2"></i>
+          Detail of Confirmed Orders
         </h4>
       </div>
 
-
-      {/* Right Badge */}
       <div className="d-flex justify-content-end mb-2">
         <h6 className="text-muted">
           <i className="fas fa-database me-2"></i>
-          Total Not Confirmed Orders
-          <span className="badge bg-success ms-2">
-            {orders.length}
-          </span>
+          Total Confirmed Orders
+          <span className="badge bg-success ms-2">{orders.length}</span>
         </h6>
       </div>
 
-
-      {/* Orders Table */}
       <div className="table-responsive">
-
         <table className="table table-bordered table-hover">
 
           <thead className="table-dark">
@@ -68,46 +44,31 @@ const NotConfirmedOrders = () => {
           </thead>
 
           <tbody>
-
             {orders.length === 0 ? (
               <tr>
-                <td colSpan="4" className="text-center">
-                  No Orders Found
-                </td>
+                <td colSpan="4" className="text-center">No Orders Found</td>
               </tr>
             ) : (
               orders.map((order, index) => (
                 <tr key={order.order_number}>
-
                   <td>{index + 1}</td>
-
                   <td>{order.order_number}</td>
-
+                  <td>{new Date(order.order_time).toLocaleDateString()}</td>
                   <td>
-                    {new Date(order.order_time).toLocaleString()}
-                  </td>
-
-                  <td>
-                    <Link
-                      to={`/admin/order-detail/${order.order_number}`}
-                      className="btn btn-info btn-sm"
-                    >
+                    <Link to={`/admin/order-detail/${order.order_number}`} className="btn btn-info btn-sm">
                       View Details
                     </Link>
                   </td>
-
                 </tr>
               ))
             )}
-
           </tbody>
 
         </table>
-
       </div>
 
     </AdminLayout>
   );
 };
 
-export default NotConfirmedOrders;
+export default ConfirmedOrders;
