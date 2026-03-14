@@ -48,7 +48,7 @@ urlpatterns = [
     path('register/', user_register, name="user_register"),
     path('login/', user_login, name="user_login"),
 
-
+    
     # =========================
     # Cart Management
     # =========================
@@ -75,5 +75,13 @@ urlpatterns = [
     path('user/<int:user_id>/', get_user_profile, name="get_user_profile"),
     path('user/update/<int:user_id>/', update_user_profile, name="update_user_profile"),
     path('user/change-password/<int:user_id>/', change_password, name="change_password"),
+
+    #admin side crud management
+
+    #manipulating category
+    path("manipulate-category/<int:category_id>/",manipulate_category,name="manipulate_category"),
+    path("manipulate-food/<int:food_id>/",manipulate_food,name="manipulate_food"),
+      path("manage-users/", get_users),
+    path("manipulate-users/<int:user_id>/", manipulate_user),
 
 ]

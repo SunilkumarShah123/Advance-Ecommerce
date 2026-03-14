@@ -571,20 +571,22 @@ def update_order_status(request):
         )
 
     try:
-        order = Order.objects.get(order_number=order_number)
-
+        order = Order.objects.filter(order_number=order_number)
+             
         # create tracking record
         FoodTracking.objects.create(
-            order=order,
+            order=order.first(),
             status=status,
             remark=remark
         )
 
+   
         # update final order status in address table
         OrderAddress.objects.filter(
             order_number=order_number
         ).update(order_final_status=status)
-
+       
+  
         return Response({
             "msg": "Order status updated successfully"
         })
@@ -611,3 +613,114 @@ def admin_order_search(request):
     except Exception as e:
         print("Search Error",e)
         return Response({"error":str(e)},status=404)
+
+@api_view(["GET", "PUT", "DELETE"])
+def manipulate_category(request, category_id):
+    try:
+        category = Category.objects.get(id=category_id)
+
+        if request.method == "GET":
+            serializer = CategorySerializer(category)
+            return Response(serializer.data, status=200)
+
+        elif request.method == "PUT":
+            serializer = CategorySerializer(category, data=request.data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"msg": "Category Updated Successfully !!"}, status=200)
+            else:
+                return Response(serializer.errors, status=400)
+
+        elif request.method == "DELETE":
+            category.delete()
+            return Response({"msg": "Category deleted successfully"}, status=200)
+
+    except Category.DoesNotExist:
+        return Response({"error": "Category Does Not Exists"}, status=404)
+
+    except Exception as e:
+        print("Manipulation Error", e)
+        return Response({"error": str(e)}, status=500)
+
+@api_view(["GET", "PUT", "DELETE"])
+def manipulate_food(request, food_id):
+    try:
+        food = Food.objects.get(id=food_id)
+
+        if request.method == "GET":
+            serializer = FoodSerializer(food)
+            return Response(serializer.data, status=200)
+
+        elif request.method == "PUT":
+            serializer = FoodSerializer(food, data=request.data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"msg": "Food Item Updated Successfully !!"}, status=200)
+            else:
+                return Response(serializer.errors, status=400)
+
+        elif request.method == "DELETE":
+            food.delete()
+            return Response({"msg": "Food Item deleted successfully"}, status=200)
+
+    except Food.DoesNotExist:
+        return Response({"error": "Food Item Does Not Exists"}, status=404)
+
+    except Exception as e:
+        print("Food Manipulation Error", e)
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["GET"])
+def get_users(request):
+    try:
+
+        users = User.objects.all().order_by("-id")
+        serializer = UserSerializer(users, many=True)
+
+        return Response(serializer.data, status=200)
+
+    except Exception as e:
+        print("Get Users Error:", e)
+        return Response({"error": str(e)}, status=500)
+
+
+
+@api_view(["GET", "PUT", "DELETE"])
+def manipulate_user(request, user_id):
+    try:
+
+        user = User.objects.get(id=user_id)
+
+        if request.method == "GET":
+
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=200)
+
+
+        elif request.method == "PUT":
+
+            serializer = UserSerializer(user, data=request.data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"msg": "User Updated Successfully"}, status=200)
+
+            else:
+                return Response(serializer.errors, status=400)
+
+
+        elif request.method == "DELETE":
+
+            user.delete()
+            return Response({"msg": "User Deleted Successfully"}, status=200)
+
+
+    except User.DoesNotExist:
+        return Response({"error": "User Does Not Exist"}, status=404)
+
+    except Exception as e:
+        print("User Manipulation Error:", e)
+        return Response({"error": str(e)}, status=500)
