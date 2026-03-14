@@ -54,6 +54,10 @@ import AllOrders from "./Pages/AllOrders";
 import BetweenDatesReport from "./Pages/BetweenDatesReport.jsx";
 import AdminOrderViewDetails from "./Pages/AdminOrderViewDetails.jsx";
 import AdminSearchOrderPage from "./Pages/AdminSearchOrderPage.jsx";
+import EditCategory from "./Pages/EditCategory.jsx";
+import EditFood from "./Pages/EditFood.jsx";
+import AdminEditUsers from "./Pages/AdminEditUsers.jsx";
+import ManageUsers from "./Pages/ManageUsers.jsx";
 
 const App = () => {
   return (
@@ -102,10 +106,14 @@ const App = () => {
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/add-category" element={<AddCategory />} />
       <Route path="/manage-category" element={<ManageCategory />} />
+      <Route path="/edit-category/:id" element={<EditCategory />} />
       <Route path="/add-food-item" element={<AddFood />} />
       <Route path="/manage-food-item" element={<ManageFood />} />
+      <Route path="/edit-food-item/:id" element={<EditFood />} />
+      <Route path="/manage-register-user" element={<ManageUsers />} />
+      <Route path="/edit-register-user/:id" element={<AdminEditUsers />} />
 
-
+     
       {/* =========================
           Admin Order Management
       ========================= */}

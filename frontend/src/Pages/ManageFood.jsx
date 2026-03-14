@@ -33,6 +33,23 @@ const ManageFood = () => {
     }
   };
 
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete the Food ?")){
+      fetch(`http://localhost:8000/api/manipulate-food/${id}/`, {
+        method: "DELETE",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          toast.success(data.msg || "Deleted successfully");
+          setCategoryList(categoryList.filter((item)=> item.id !== id))
+        })
+        .catch((error) => {
+          toast.error("Error during deleting");
+          console.log(error);
+        });
+    }
+
+  };
   return (
     <>
       <AdminLayout>
@@ -70,12 +87,13 @@ const ManageFood = () => {
           </div>
 
           <div>
-            <table className="table table-bordered table-hover">
+            <table className="table table-bordered table-hover text-center">
               <thead className="table-dark">
                 <tr>
                   <th>S.No</th>
                   <th>Category Name</th>
                   <th>Food Item Name</th>
+                  <th>Availiable</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -93,13 +111,15 @@ const ManageFood = () => {
                       <td>{index + 1}</td>
                       <td>{food.category_name}</td>
                       <td>{food.item_name}</td>
+
+                      <td>{food.is_available?"Yes":"No"}</td>
                       <td>
-                        <Link className="btn btn-sm btn-primary me-2">
+                        <Link to={`/edit-food-item/${food.id}/`} className="btn btn-sm btn-primary me-2">
                           <i className="fas fa-edit me-1"></i>Edit
                         </Link>
-                        <Link className="btn btn-sm btn-danger">
+                        <button className="btn btn-sm btn-danger" onClick={()=>(handleDelete(food.id))}>
                           <i className="fas fa-trash me-1"></i>Delete
-                        </Link>
+                        </button>
                       </td>
                     </tr>
                   ))

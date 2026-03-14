@@ -182,7 +182,7 @@ const AdminOrderViewDetails = () => {
 
               <tr>
                 <th>Status</th>
-                <td>{address.order_final_status}</td>
+                <td>{address.order_final_status || "Pending"}</td>
               </tr>
             </tbody>
           </table>

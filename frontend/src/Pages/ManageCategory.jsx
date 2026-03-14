@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { CSVLink } from "react-csv";
 import AdminLayout from "../Components/AdminLayout";
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css'
 
 const ManageCategory = () => {
   const [categoryList, setCategoryList] = useState([]);
@@ -32,9 +34,28 @@ const ManageCategory = () => {
       setCategoryList("");
     }
   };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete the cateogry?")){
+      fetch(`http://localhost:8000/api/manipulate-category/${id}/`, {
+        method: "DELETE",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          toast.success(data.msg || "Deleted successfully");
+          setCategoryList(categoryList.filter((item)=> item.id !== id))
+        })
+        .catch((error) => {
+          toast.error("Error during deleting");
+          console.log(error);
+        });
+    }
+
+  };
   return (
     <>
       <AdminLayout>
+        <ToastContainer className="text-center"/>
         <div>
           <h2 className="text-center p-3 text-primary shadow-sm">
             <i className="fas fa-list-alt me-2"></i>Manage Category
@@ -77,10 +98,10 @@ const ManageCategory = () => {
               <tbody>
                 {categoryList.length <= 0 ? (
                   <tr>
-                  <td colSpan="4" className="text-center">
-                    <h5>Items Doesn't Exist</h5>
-                  </td>
-                </tr>
+                    <td colSpan="4" className="text-center">
+                      <h5>Items Doesn't Exist</h5>
+                    </td>
+                  </tr>
                 ) : (
                   categoryList.map((category, index) => (
                     <tr key={category.id}>
@@ -90,13 +111,14 @@ const ManageCategory = () => {
                         {new Date(category.creation_date).toLocaleString()}
                       </td>
                       <td>
-                        <Link className="btn btn-sm btn-primary me-2">
+                        <Link to={`/edit-category/${category.id}/`} className="btn btn-sm btn-primary me-2">
                           <i className="fas fa-edit me-1"></i>Edit
                         </Link>
-                        <Link className="btn btn-sm btn-danger">
-                          <i className="fas fa-trash me-1"></i>Delete
-                        </Link>
+                        <button className="btn btn-sm btn-danger"   onClick={()=>(handleDelete(category.id))} >
+                          <i className="fas fa-trash me-1"></i>
+                        </button>
                       </td>
+                     
                     </tr>
                   ))
                 )}

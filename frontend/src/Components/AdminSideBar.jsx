@@ -16,6 +16,7 @@ import {
   FaSearch,
   FaStar,
   FaFile,
+  FaUser,
 } from "react-icons/fa";
 
 const AdminSideBar = () => {
@@ -44,6 +45,9 @@ const AdminSideBar = () => {
       <div className="list-group list-group-flush">
         <Link className="list-group-item list-group-item-action bg-dark text-light border-0">
           <FaThLarge className="me-2" /> Dashboard
+        </Link>
+        <Link className="list-group-item list-group-item-action bg-dark text-light border-0" to={"/manage-register-user"}>
+          <FaUser className="me-2" /> Registered Users 
         </Link>
 
         <button
