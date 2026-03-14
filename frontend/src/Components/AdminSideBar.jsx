@@ -159,7 +159,7 @@ const AdminSideBar = () => {
         <Link className="list-group-item list-group-item-action bg-dark text-light border-0" to="/between-dates-report">
           <FaFile className="me-2" /> B/W Dates Report
         </Link>
-        <Link className="list-group-item list-group-item-action bg-dark text-light border-0">
+        <Link className="list-group-item list-group-item-action bg-dark text-light border-0" to="/admin/search-order">
           <FaSearch className="me-2" /> Search
         </Link>
 
