@@ -67,7 +67,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 class OrderedFoodDetailSerializer(serializers.ModelSerializer):
     item_name=serializers.CharField(source="food.item_name")
     item_price=serializers.CharField(source="food.item_price")
-    image=serializers.CharField(source="food.image")
+    image=serializers.ImageField(source="food.image")
     
     class Meta:
         model = Order

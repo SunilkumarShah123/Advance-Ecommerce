@@ -292,35 +292,55 @@ def place_order(request):
        return Response({"error":str(e)},status=404)
 
 @api_view(['GET'])
-def get_orders(request,user_id):
+def get_orders(request, user_id):
     try:
-      orders=Order.objects.filter(user_id=user_id)
-      serializer=OrderSerializer(orders,many=True)
-      return Response(serializer.data,status=200)
+        orders = Order.objects.filter(user_id=user_id, is_order_placed=True)
+
+        unique_orders = []
+        seen = set()
+
+        for order in orders:
+            if order.order_number not in seen:
+                unique_orders.append(order)
+                seen.add(order.order_number)
+
+        serializer = OrderSerializer(unique_orders, many=True)
+        return Response(serializer.data, status=200)
+
     except Exception as e:
-        print("Order Error:",e)
-        return Response({"error":str(e)},status=404)
+        print("Order Error:", e)
+        return Response({"error": str(e)}, status=404)
 
 @api_view(['GET'])
-def get_single_order_detail(request,order_number):
+def get_single_order_detail(request, order_number):
     try:
-      orders=Order.objects.get(order_number=order_number,is_order_placed=True)
-      print(orders.food.image)
-      serializer=OrderSerializer(orders)
-      return Response(serializer.data,status=200)
+        orders = Order.objects.filter(
+            order_number=order_number,
+            is_order_placed=True
+        ).select_related("food")
+
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data, status=200)
+
     except Exception as e:
-        print("Order Error:",e)
-        return Response({"error":str(e)},status=404)
+        print("Order Error:", e)
+
+        return Response({"error": str(e)}, status=404)
 
 @api_view(['GET'])
-def get_single_order_address_detail(request,order_number):
+def get_single_order_address_detail(request, order_number):
     try:
-      order_address=OrderAddress.objects.get(order_number=order_number)
-      serializer=OrderAddressSerializer(order_address)
-      return Response(serializer.data,status=200)
+        order_address = OrderAddress.objects.filter(order_number=order_number).first()
+
+        if not order_address:
+            return Response({"error": "Address not found"}, status=404)
+
+        serializer = OrderAddressSerializer(order_address)
+        return Response(serializer.data, status=200)
+
     except Exception as e:
-        print("Order Error:",e)
-        return Response({"error":str(e)},status=404)
+        print("Order Error:", e)
+        return Response({"error": str(e)}, status=404)
 
 def generate_invoices(request, order_number):
     orders = Order.objects.filter(order_number=order_number, is_order_placed=True)
@@ -524,7 +544,7 @@ def admin_detail_order_view(request,order_number):
     try:
         order_address=OrderAddress.objects.get(order_number=order_number)#at a time viewing single order address detail so used get
         order=Order.objects.filter(order_number=order_number)#their can be multiple record in one single order so used filter
-        tracking=FoodTracking.objects.filter(order=order)#used filter because their can be seriese of state of tracking during prepration of single order
+        tracking=FoodTracking.objects.filter(order__order_number=order_number)#used filter because their can be seriese of state of tracking during prepration of single order
     except Exception as e:
         print("Fetching Error:", e)
         return Response(
@@ -532,8 +552,62 @@ def admin_detail_order_view(request,order_number):
             status=500
         )
     return Response({
-        "address":OrderDetailSerializer(order_address),
-         "order":OrderedFoodDetailSerializer(order,many=True),
-         "track":FoodOrderTrackingSerializer(tracking,many=True)
+        "address":OrderDetailSerializer(order_address).data,
+         "order":OrderedFoodDetailSerializer(order,many=True).data,
+         "track":FoodOrderTrackingSerializer(tracking,many=True).data
     })
     
+@api_view(['POST'])
+def update_order_status(request):
+
+    order_number = request.data.get("order_number")
+    status = request.data.get("status")
+    remark = request.data.get("remark")
+
+    if not order_number or not status:
+        return Response(
+            {"error": "Order id and status are required"},
+            status=400
+        )
+
+    try:
+        order = Order.objects.get(order_number=order_number)
+
+        # create tracking record
+        FoodTracking.objects.create(
+            order=order,
+            status=status,
+            remark=remark
+        )
+
+        # update final order status in address table
+        OrderAddress.objects.filter(
+            order_number=order_number
+        ).update(order_final_status=status)
+
+        return Response({
+            "msg": "Order status updated successfully"
+        })
+
+    except Order.DoesNotExist:
+        return Response({
+            "error": "Order not found"
+        }, status=404)
+
+    except Exception as e:
+        print("Update error:", e)
+
+        return Response({
+            "error": "Something went wrong"
+        }, status=500)
+
+@api_view(['GET'])
+def admin_order_search(request):
+    query_keyword=request.GET.get('q','')
+    try:
+        orders =OrderAddress.objects.filter(Q(order_number__icontains=query_keyword))  
+        serializer =  OrderSummarySerializer(orders, many=True)
+        return Response(serializer.data,status=200)
+    except Exception as e:
+        print("Search Error",e)
+        return Response({"error":str(e)},status=404)
