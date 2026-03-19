@@ -40,9 +40,6 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.user.id} {self.order_number}"
 
-from django.db import models
-from .models import User
-
 
 class OrderAddress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

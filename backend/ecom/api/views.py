@@ -1,13 +1,18 @@
+from collections import defaultdict
+from decimal import Decimal
+from time import strftime
 from django.shortcuts import get_object_or_404,render
 from django.contrib.auth.hashers import check_password, make_password#encrypt the plain password science normal created User models in model.py will store passowrd plain
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
-from django.db.models import Q
+from django.db.models import Q, Count
 from .models import *
-from django.contrib.auth.decorators import login_required
 from .serializers import *
 import random #for randomly suffling food items and pick 9 product random and show in home page
+from django.utils.timezone import timedelta, now
+from django.db.models import Sum, F,DecimalField
+from django.db.models.functions import Ord, TruncMonth,Coalesce,TruncWeek
 @api_view(['POST'])
 def admin_login(request):
     username = request.data.get('username')
@@ -292,19 +297,19 @@ def place_order(request):
        return Response({"error":str(e)},status=404)
 
 @api_view(['GET'])
-def get_orders(request, user_id):
+def get_placed_orders(request, user_id):
     try:
-        orders = Order.objects.filter(user_id=user_id, is_order_placed=True)
+        placed_orders = OrderAddress.objects.filter(user_id=user_id)
 
-        unique_orders = []
+        unique_placed_orders = []
         seen = set()
 
-        for order in orders:
+        for order in placed_orders:
             if order.order_number not in seen:
-                unique_orders.append(order)
+                unique_placed_orders.append(order)
                 seen.add(order.order_number)
 
-        serializer = OrderSerializer(unique_orders, many=True)
+        serializer = OrderAddressSerializer(unique_placed_orders, many=True)
         return Response(serializer.data, status=200)
 
     except Exception as e:
@@ -317,7 +322,8 @@ def get_single_order_detail(request, order_number):
         orders = Order.objects.filter(
             order_number=order_number,
             is_order_placed=True
-        ).select_related("food")
+        )
+        print(orders.first())
 
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data, status=200)
@@ -331,7 +337,7 @@ def get_single_order_detail(request, order_number):
 def get_single_order_address_detail(request, order_number):
     try:
         order_address = OrderAddress.objects.filter(order_number=order_number).first()
-
+        # print(order_address.order_time)
         if not order_address:
             return Response({"error": "Address not found"}, status=404)
 
@@ -724,3 +730,291 @@ def manipulate_user(request, user_id):
     except Exception as e:
         print("User Manipulation Error:", e)
         return Response({"error": str(e)}, status=500)
+
+
+
+@api_view(['GET'])
+def dashboard(request):
+
+    current_date = now().date()
+
+    # starting monday date of current week
+    starting_day_date_of_week_before_current_date = current_date - timedelta(days=current_date.weekday())
+
+    # starting day of current month
+    starting_day_of_current_month = current_date.replace(day=1)
+
+    # starting day and month of current year
+    starting_day_and_month_of_current_year = current_date.replace(month=1, day=1)
+
+
+    def total_sales_calculate(start_date):
+
+        # values_list will return all the order_number values of order_number column
+        # of different payment objects in paid_orders variable
+        # and flat=True is used because by default values_list will return the list
+        # but values in tuples which will be not iterable easily
+        # to get values_list values in pure list we use flat=True
+        paid_orders = PaymentDetail.objects.filter(
+            payment_date__date__gte=start_date
+        ).values_list("order_number", flat=True) #used extra __date__ to resolve utc and local time zone warning else payment_date__gte== will also work
+
+        total_order_amount = Order.objects.filter(
+            order_number__in=paid_orders  # filters order objects whose order number matches with the order numbers in the paid order list
+        ).annotate(  # annotate is used to create new column
+            total_purchased_price_per_each_order_number = F('quantity') * F("food__item_price")  
+            # F is django.db object that perform arithmetic calculation between table column in database level
+        ).aggregate(  # aggregate is also django.db function that contains Sum, Avg, Min, Max and which is performed in database column
+            all_orders_sum_till_given_date=Sum("total_purchased_price_per_each_order_number")
+        )["all_orders_sum_till_given_date"] or 0.0
+
+        return round(total_order_amount,2) #used round because total can also contain 145.754544 so it cannot be properly shown to round will round that till ._ _ 2 decimal value
+
+
+    data = {
+
+        "total_orders": OrderAddress.objects.count(),
+
+        "new_orders": OrderAddress.objects.filter(
+            order_final_status__isnull=True
+        ).count(),
+
+        "confirmed_orders": OrderAddress.objects.filter(
+            order_final_status="Order Confirmed"
+        ).count(),
+
+        "food_preparing": OrderAddress.objects.filter(
+            order_final_status="Food Being Prepared"
+        ).count(),
+
+        "food_pickup": OrderAddress.objects.filter(
+            order_final_status="Food Pickup"
+        ).count(),
+
+        "food_delivered": OrderAddress.objects.filter(
+            order_final_status="Food Delivered"
+        ).count(),
+
+        "cancelled_orders": OrderAddress.objects.filter(
+            order_final_status="Order Cancelled"
+        ).count(),
+
+        "total_users": User.objects.count(),
+
+        "total_categories": Category.objects.count(),
+
+        "total_reviews": Review.objects.count(),
+
+        "total_wishlists": Wishlist.objects.count(),
+
+        "week_sales": total_sales_calculate(starting_day_date_of_week_before_current_date),
+
+        "month_sales": total_sales_calculate(starting_day_of_current_month),
+
+        "year_sales": total_sales_calculate(starting_day_and_month_of_current_year),
+
+        "today_sales": total_sales_calculate(current_date)
+
+    }
+
+    return Response(data)
+
+@api_view(['GET'])
+def get_montly_sales_summary(request):
+    individual_order_calculation = Order.objects.filter(is_order_placed=True).values("order_number").annotate(
+        total_price_of_each_order=Coalesce(
+            Sum(F("quantity") * F("food__item_price")),
+            Decimal("0.00")
+        )
+    )
+    
+    #above will return value like individual_order_calculation= [{"order_number":ORD1,"total_price":5500},{"order_number":ORD2,"total_price":6500},] since we are using values not value_list 
+    #Note Values will group the mulitple repeating order in to different group  row and annotate will one by perform caluculation of each item in specific group and then sum will add the each group item calculation like total_group1=group1[item1]+group[item2] similary for another group also
+
+    order_price_summary = {
+        o["order_number"]: o["total_price_of_each_order"] for o in individual_order_calculation
+    }
+
+    #above  will return value like order_price_summary={ "ORD1":5500,"ORD2":6500}[Note:order price summary will contain unique order number with its calculate correponding total price value]
+
+    order_number_with_its_corresponding_month = (
+        OrderAddress.objects
+        .filter(order_number__in=order_price_summary.keys())
+        .annotate(month=TruncMonth('order_time'))
+        .values('month', 'order_number')
+    )
+            
+    ''' Get OrderAddress records whose order_number exists in order_price_map
+    # TruncMonth extracts only the month part from order_time and then set the current date in date time to intial day i.e 01 day eg:[
+    {'month': datetime.date(2026, 3, 1), 'order_number': 'ORD001'},
+    {'month': datetime.date(2026, 4, 1), 'order_number': 'ORD002'}]
+    Then return only the month and order_number fields '''
+
+    month_with_its_corresponding_sales_value = defaultdict(lambda: Decimal("0.00")) #it refers to the dictionary that stores key as month of the order and value as total purchased price of the order
+
+    for order in order_number_with_its_corresponding_month:
+        month_label = order["month"].strftime("%b") #converted the numeric month to actual string month like "jan,feb"
+        month_with_its_corresponding_sales_value[month_label] += order_price_summary.get(order["order_number"], Decimal("0.00")) #stored the month lable as key and value as the amount recieved after the += calculation
+    
+    result = [{"month": month, "sales": total} for month, total in month_with_its_corresponding_sales_value.items()] #created a list with dic containing different month with its respectifves sales values in key and value pair
+    return Response(result)
+
+
+@api_view(['GET'])
+def get_top_sold_item(request):
+    top_items=Order.objects.filter(is_order_placed=True).values("food__item_name").annotate(total_quantity=Sum("quantity")).order_by("-total_quantity")[:5]
+    print(top_items)
+    return Response(top_items)
+  
+
+
+@api_view(['GET'])
+def get_weekly_sales_summary(request):
+
+    individual_order_calculation = Order.objects.filter(is_order_placed=True).values("order_number").annotate(
+        total_price_of_each_order=Coalesce(
+            Sum(F("quantity") * F("food__item_price")),
+            Decimal("0.00")
+        )
+    )
+
+    order_price_summary = {
+        o["order_number"]: o["total_price_of_each_order"] for o in individual_order_calculation
+    }
+
+    order_number_with_its_corresponding_week = (
+        OrderAddress.objects
+        .filter(order_number__in=order_price_summary.keys())
+        .annotate(week=TruncWeek('order_time'))
+        .values('week', 'order_number')
+    )
+
+    week_with_its_corresponding_sales_value = defaultdict(lambda: Decimal("0.00"))
+
+    for order in order_number_with_its_corresponding_week:
+        week_label = order["week"].strftime("Week %W")
+
+        week_with_its_corresponding_sales_value[week_label] += order_price_summary.get(
+            order["order_number"], Decimal("0.00")
+        )
+
+    result = [
+        {"week": week, "sales": total}
+        for week, total in week_with_its_corresponding_sales_value.items()
+    ]
+
+    return Response(result)
+
+
+from django.db.models import Count
+from django.db.models.functions import TruncWeek
+
+@api_view(['GET'])
+def weekly_registered_user(request):
+
+    data = (
+        User.objects
+        .annotate(week=TruncWeek("reg_date"))
+        .values("week")
+        .annotate(user_count=Count("id"))
+    )
+
+    result = [
+        {
+            "week": i["week"].strftime("Week %W"),#fetch out the week then convert it to week 09 proper week count format since normmal data.week is contain data like 2026-o4-09
+            "new_user": i["user_count"],
+        }
+        for i in data
+    ]
+
+    return Response(result)
+
+@api_view(['POST'])
+def add_to_wishlist(request):
+    user_id = request.data.get('userId')
+    food_id = request.data.get('foodId')
+
+    try:
+        if user_id is not None and food_id is not None:
+            wishlist, created = Wishlist.objects.get_or_create(
+                user_id=user_id,
+                food_id=food_id
+            )
+
+            if created:
+                return Response({'msg': "Added to wishlist"}, status=201)
+            else:
+                return Response({'msg': "Already in wishlist"}, status=200)
+
+        return Response({'error': 'Invalid data'}, status=400)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+        
+@api_view(['POST'])  
+def remove_from_wishlist(request):
+    print("RAW BODY:", request.body)
+    print("PARSED DATA:", request.data)
+    user_id = request.data.get('userId')
+    food_id = request.data.get('foodId')
+
+    try:
+        if user_id is not None and food_id is not None:
+            Wishlist.objects.filter(
+                user_id=user_id,
+                food_id=food_id
+            ).delete()
+
+            return Response({'msg': 'Removed from wishlist'}, status=200)
+
+        return Response({'error': 'Invalid data'}, status=400)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def get_wish_list(request,user_id):
+
+    try:
+        if user_id is not None:
+         list=Wishlist.objects.filter(user_id=user_id)
+         serializer=WishListSerializer(list,many=True)
+         return Response(serializer.data,status=200)
+    except Exception as e:
+     return Response({'error':str(e)},status=404)
+    
+@api_view(['GET'])
+def track_order(request,order_number):
+    order=Order.objects.filter(order_number=order_number,is_order_placed=True).first()
+    if not order:
+       return Response({"error":"Orderd not found or not placed yet"},status=404)
+    try:
+        tracking_history=FoodTracking.objects.filter(order=order)
+        serializers=FoodOrderTrackingSerializer(tracking_history,many=True)
+        return Response(serializers.data,status=200)
+    except Exception as e:
+        print("Track Erro",e)
+        return Response({"error":str(e)},status=404)
+
+@api_view(['POST'])
+def cancel_order(request,order_number):
+    remark=request.data.get("remark")
+
+    order_to_be_cancelled=Order.objects.filter(order_number=order_number).first()
+    order_address=OrderAddress.objects.get(order_number=order_number)
+
+    try:
+        FoodTracking.objects.create(
+
+              order=order_to_be_cancelled,
+              remark=remark,
+              status= "Order Cancelled",
+              order_cancelled_by_user = True,
+
+        )
+        order_address.order_final_status="Order Cancelled"
+        order_address.save()
+        return Response({"msg":"Order Cancelled Successfully"},status=200)
+    except Exception as e:
+        print("Cancelling Error",e)
+        return Response({"error":str(e)},status=404)

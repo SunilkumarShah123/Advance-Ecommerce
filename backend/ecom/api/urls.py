@@ -10,7 +10,7 @@ urlpatterns = [
 
 
     # =========================
-    # Category Management (Admin)
+    # sy Management (Admin)
     # =========================
     path('add-category/', add_category, name='add_category'),
     path('get-categories/', get_categories, name='get_categories'),
@@ -63,7 +63,7 @@ urlpatterns = [
     # Order Placement (User)
     # =========================
     path('place-order/', place_order, name="place_order"),
-    path('my-orders/<int:user_id>/', get_orders, name="get_orders"),
+    path('my-orders/<int:user_id>/', get_placed_orders, name="get_orders"),
     path('single-order-detail/<str:order_number>/', get_single_order_detail, name="get_single_order_detail"),
     path('single-order-address-detail/<str:order_number>/', get_single_order_address_detail, name="get_single_order_address_detail"),
     path('invoices/<str:order_number>/', generate_invoices, name="generate_invoices"),
@@ -76,12 +76,23 @@ urlpatterns = [
     path('user/update/<int:user_id>/', update_user_profile, name="update_user_profile"),
     path('user/change-password/<int:user_id>/', change_password, name="change_password"),
 
-    #admin side crud management
 
     #manipulating category
     path("manipulate-category/<int:category_id>/",manipulate_category,name="manipulate_category"),
     path("manipulate-food/<int:food_id>/",manipulate_food,name="manipulate_food"),
-      path("manage-users/", get_users),
+    path("manage-users/", get_users),
     path("manipulate-users/<int:user_id>/", manipulate_user),
+    path("dashboard/",dashboard,name="dashboard"),
+    path("montly-sales-summary/",get_montly_sales_summary,name="get_monthly_sales_summary"),
+    path("top-sold-food-item/",get_top_sold_item,name="get_top_sold_item"),
+    path("weekly-sales-summary/",get_weekly_sales_summary,name="get_weekly_sales_summary"),
+    path("weekly-registered-new-users/",weekly_registered_user,name="weekly_registered_user"),
+
+    path("wishlist/add/",add_to_wishlist,name="add_to_wishlist"),
+    path("wishlist/remove/",remove_from_wishlist,name="remove_from_wishlist"),
+    path("get-wish-list/<int:user_id>/",get_wish_list,name="get_wish_list"),
+    
+    path("track-order/<str:order_number>/",track_order,name="track_order"),
+    path('cancel-order/<str:order_number>/',cancel_order,name="cancel_order"),
 
 ]
