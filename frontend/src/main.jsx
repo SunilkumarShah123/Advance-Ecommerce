@@ -1,23 +1,25 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import '@fortawesome/fontawesome-free/css/all.min.css'
-import { CartProvider } from './Pages/CartContext'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import { CartProvider } from "./Context/CartContext";
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter
       future={{
         v7_startTransition: true,
-        v7_relativeSplatPath: true
-      }}>
-    <CartProvider>
-    <App />
-    </CartProvider>
-      
+        v7_relativeSplatPath: true,
+      }}
+    >
+    
+        <CartProvider>
+          <App />
+        </CartProvider>
+ 
     </BrowserRouter>
-  </React.StrictMode>
-)
+  </React.StrictMode>,
+);

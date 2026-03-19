@@ -23,7 +23,7 @@ const MyOrders = () => {
         );
 
         const result = await response.json();
-
+        console.log(result[0])
         if (response.ok) {
           setOrders(result);
         } else {
@@ -80,7 +80,7 @@ const MyOrders = () => {
                 </span>
               </div>
           
-              <Link className="btn btn-secondary me-2">
+              <Link className="btn btn-secondary me-2" to={`/track-order/${order.order_number}/`}>
                 <FaMapMarkedAlt className="me-1"/>Track
               </Link>
                

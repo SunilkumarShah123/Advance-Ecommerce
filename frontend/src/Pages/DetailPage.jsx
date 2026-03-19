@@ -6,6 +6,7 @@ import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useCartCount } from "../Context/CartContext"; 
 import { useFetch } from "../CustomHook/useFetch";
 
 const DetailPage = () => {
@@ -15,12 +16,11 @@ const DetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [addedToCart,setAddedToCart]=useState(false)
-
+  const { cartCount, setCartCount } = useCartCount();
   const { data: cartData, loading } = useFetch(
     `${BASEURL}/api/cart/${userId}`
   );
   
-
   useEffect(() => {
     const fetchFood = async () => {
       try {
@@ -57,6 +57,7 @@ const DetailPage = () => {
       if (response.ok) {
         toast.success(data.msg || "Item added successfully");
         setAddedToCart(true)
+        setCartCount(cartCount+1)
         
       } else {
         toast.error(data.error || "Unable to Add to Cart");
@@ -82,7 +83,7 @@ const DetailPage = () => {
   return (
     <>
       <PublicLayout>
-        <ToastContainer className="text-center" autoclose={2000} />
+        <ToastContainer className="text-center" />
         <div className="container">
           <div className="row my-4 shadow-lg p-4 align-items-center">
             <div className="col-md-5 text-center">

@@ -3,17 +3,21 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import PublicLayout from "../Components/PublicLayout";
 import "../Css/home.css";
-
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css'
+import { useWishListCount } from "../Context/WishListContext";
 const Home = () => {
   const BASEURL = import.meta.env.VITE_DJANGO_BASE_URL;
-  const [foodItems, setFood] = useState([]);
-
+  const [foodItems, setFoods] = useState([]);
+  const userId=localStorage.getItem("userId")
+  const [wishListFoodIds,setWishListFoodIds]=useState([])
+  const {wishListCount,setWishListCount}=useWishListCount()
   useEffect(() => {
     const fetchFood = async () => {
       try {
         const response = await fetch(`${BASEURL}/api/random-food/`);
         const data = await response.json();
-        setFood(data);
+        setFoods(data);
       } catch (error) {
         console.log(error);
       }
@@ -21,12 +25,77 @@ const Home = () => {
 
     fetchFood();
   }, []);
-  {
-    /* empty [ ] in useEffect mean only render the page whenever the page reloads*/
-  }
+
+  useEffect(() => {
+    const wishList = async () => {
+      
+      try {
+        const response = await fetch(`${BASEURL}/api/get-wish-list/${userId}/`);
+        const data = await response.json();
+        setWishListFoodIds(data.map((item)=>(item.food_id)));
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    wishList();
+  }, [userId]);
+
+console.log('WishList Ids',wishListFoodIds)
+  const toggleWishList = async (foodId) => {
+    if (!userId) {
+      toast.info("You must login to Add to WishList");
+      return;
+    }
+  
+    const isWishlisted = wishListFoodIds.includes(foodId);
+    const endPoint = isWishlisted ? "remove" : "add";
+
+    console.log(endPoint)
+    try {
+      const response = await fetch(
+        `${BASEURL}/api/wishlist/${endPoint}/`,
+        {
+          method:"POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            foodId,
+          }),
+        }
+      );
+      console.log(response[0])
+  
+      const data = await response.json();
+  
+      if (response.status === 200) {
+        setWishListFoodIds((prev) =>
+          prev.filter((id) => id !== foodId)
+        );
+       const updatedCount=await fetch(`http://localhost:8000/api/get-wish-list/${userId}/`)
+        const updatedWishListCount= await updatedCount.json()
+        setWishListCount(updatedWishListCount.length)
+        toast.success(data.msg || "Removed from wishlist");
+      } else if (response.status === 201) {
+        setWishListFoodIds((prev) => [...prev, foodId]);
+        const updatedCount=await fetch(`http://localhost:8000/api/get-wish-list/${userId}/`)
+        const updatedWishListCount= await updatedCount.json()
+        setWishListCount(updatedWishListCount.length)
+        toast.success(data.msg || "Added to wishlist");
+      } else {
+        toast.error("Error during wishlisting",data.error);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong");
+    }
+  };
   return (
     <>
       <PublicLayout>
+        <ToastContainer className="text-center"/>
         <section
           className="hero py-5"
           style={{ backgroundImage: "url('/images/hero.webp')" }}
@@ -87,18 +156,41 @@ const Home = () => {
                     className="card cardwrapper shadow-sm"
                     style={{ borderRadius: "8px", transition: "0.2s" }}
                   >
-                    <Link to={`/food/${food.id}`}>
-                    <img
-                      src={`${BASEURL}${food.image}`}
-                      className="card-img-top"
-                      alt="product"
-                      style={{ height: "180px", objectFit: "cover" }}
-                    />
-                    </Link>
+                    <div className="position-relative">
+                      <Link to={`/food/${food.id}`}>
+                        <img
+                          src={`${BASEURL}${food.image}`}
+                          className="card-img-top"
+                          alt="product"
+                          style={{ height: "180px", objectFit: "cover" }}
+                        />
+                      </Link>
+
+                      <i
+                        className={` ${wishListFoodIds.includes(food.id) ? 'fas':'far'} fa-heart position-absolute text-danger d-flex align-items-center justify-content-center heart-hover`}
+                        style={{
+                          top: "10px",
+                          right: "10px",
+                          width: "35px",
+                          height: "35px",
+                          backgroundColor: "white",
+                          borderRadius: "50%",
+                          fontSize: "16px",
+                          cursor: "pointer",
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                        }}
+                        onClick={ ()=> toggleWishList(food.id)}
+                      ></i>
+                    </div>
 
                     <div className="card-body">
                       <h5 className="card-title">
-                        <Link to={`/food/${food.id}`} className="text-decoration-none">{food.item_name}</Link>
+                        <Link
+                          to={`/food/${food.id}`}
+                          className="text-decoration-none"
+                        >
+                          {food.item_name}
+                        </Link>
                       </h5>
 
                       <p className="card-text text-muted">
@@ -164,9 +256,7 @@ const Home = () => {
         <section>
           <div className="container-fluid bg-warning text-center text-dark py-5">
             <h4>Ready to Satisfy Your Hunger ?</h4>
-            <Link className="btn btn-dark mb-2">
-            Browse Full Menu
-            </Link>
+            <Link className="btn btn-dark mb-2">Browse Full Menu</Link>
           </div>
         </section>
       </PublicLayout>

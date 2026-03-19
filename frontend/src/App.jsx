@@ -58,78 +58,89 @@ import EditCategory from "./Pages/EditCategory.jsx";
 import EditFood from "./Pages/EditFood.jsx";
 import AdminEditUsers from "./Pages/AdminEditUsers.jsx";
 import ManageUsers from "./Pages/ManageUsers.jsx";
-
+import FoodList from "./Pages/FoodList.jsx";
+import { WishListProvider } from "./Context/WishListContext.jsx";
+import WishList from "./Pages/WishList.jsx";
+import TrackOrder from "./Pages/TrackOrder.jsx";
 const App = () => {
   return (
+    <WishListProvider>
     <Routes>
 
-      {/* =========================
-          Public Pages
-      ========================= */}
-      <Route path="/" element={<Home />} />
-      <Route path="/search" element={<SearchPage />} />
-      <Route path="/food/:id" element={<DetailPage />} />
+{/* =========================
+    Public Pages
+========================= */}
+<Route path="/" element={<Home />} />
+<Route path="/search" element={<SearchPage />} />
+<Route path="/food/:id" element={<DetailPage />} />
 
 
-      {/* =========================
-          Authentication
-      ========================= */}
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
+{/* =========================
+    Authentication
+========================= */}
+<Route path="/register" element={<Register />} />
+<Route path="/login" element={<Login />} />
+ 
+<Route path="/track" element={<TrackOrder />} />
+<Route path="/track-order/:order_number" element={<TrackOrder />} />
 
 
-      {/* =========================
-          Cart & Orders (User)
-      ========================= */}
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/payment" element={<Payment />} />
-      <Route path="/my-orders" element={<MyOrders />} />
-      <Route path="/order-details/:order_number" element={<SingleOrderDetail />} />
+{/* =========================
+    Cart & Orders (User)
+========================= */}
+<Route path="/cart" element={<Cart />} />
+<Route path="/payment" element={<Payment />} />
+<Route path="/my-orders" element={<MyOrders />} />
+<Route path="/order-details/:order_number" element={<SingleOrderDetail />} />
+<Route path="/food-list" element={<FoodList />} />
+<Route path="/wishlist" element={<WishList />} />
 
 
-      {/* =========================
-          User Profile
-      ========================= */}
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/changepassword" element={<ChangePassword />} />
+{/* =========================
+    User Profile
+========================= */}
+<Route path="/profile" element={<Profile />} />
+<Route path="/changepassword" element={<ChangePassword />} />
 
 
-      {/* =========================
-          Admin Authentication
-      ========================= */}
-      <Route path="/admin-login" element={<AdminLogin />} />
+{/* =========================
+    Admin Authentication
+========================= */}
+<Route path="/admin-login" element={<AdminLogin />} />
 
 
-      {/* =========================
-          Admin Dashboard & Management
-      ========================= */}
-      <Route path="/admin-dashboard" element={<AdminDashboard />} />
-      <Route path="/add-category" element={<AddCategory />} />
-      <Route path="/manage-category" element={<ManageCategory />} />
-      <Route path="/edit-category/:id" element={<EditCategory />} />
-      <Route path="/add-food-item" element={<AddFood />} />
-      <Route path="/manage-food-item" element={<ManageFood />} />
-      <Route path="/edit-food-item/:id" element={<EditFood />} />
-      <Route path="/manage-register-user" element={<ManageUsers />} />
-      <Route path="/edit-register-user/:id" element={<AdminEditUsers />} />
-
-     
-      {/* =========================
-          Admin Order Management
-      ========================= */}
-      <Route path="/admin/orders/not-confirmed" element={<OrdersNotConfirmed />} />
-      <Route path="/admin/orders/confirmed" element={<ConfirmedOrders />} />
-      <Route path="/admin/orders/preparing" element={<FoodBeingPrepared />} />
-      <Route path="/admin/orders/pickup" element={<FoodPickup />} />
-      <Route path="/admin/orders/delivered" element={<FoodDelivered />} />
-      <Route path="/admin/orders/cancelled" element={<CancelledOrders />} />
-      <Route path="/admin/orders/all" element={<AllOrders />} />
-      <Route path="/between-dates-report" element={<BetweenDatesReport />} />
-      <Route path="/admin/order-detail/:order_number" element={<AdminOrderViewDetails />} />
-      <Route path="/admin/search-order" element={<AdminSearchOrderPage />} />
+{/* =========================
+    Admin Dashboard & Management
+========================= */}
+<Route path="/admin-dashboard" element={<AdminDashboard />} />
+<Route path="/add-category" element={<AddCategory />} />
+<Route path="/manage-category" element={<ManageCategory />} />
+<Route path="/edit-category/:id" element={<EditCategory />} />
+<Route path="/add-food-item" element={<AddFood />} />
+<Route path="/manage-food-item" element={<ManageFood />} />
+<Route path="/edit-food-item/:id" element={<EditFood />} />
+<Route path="/manage-register-user" element={<ManageUsers />} />
+<Route path="/edit-register-user/:id" element={<AdminEditUsers />} />
 
 
-    </Routes>
+{/* =========================
+    Admin Order Management
+========================= */}
+<Route path="/admin/orders/not-confirmed" element={<OrdersNotConfirmed />} />
+<Route path="/admin/orders/confirmed" element={<ConfirmedOrders />} />
+<Route path="/admin/orders/preparing" element={<FoodBeingPrepared />} />
+<Route path="/admin/orders/pickup" element={<FoodPickup />} />
+<Route path="/admin/orders/delivered" element={<FoodDelivered />} />
+<Route path="/admin/orders/cancelled" element={<CancelledOrders />} />
+<Route path="/admin/orders/all" element={<AllOrders />} />
+<Route path="/between-dates-report" element={<BetweenDatesReport />} />
+<Route path="/admin/order-detail/:order_number" element={<AdminOrderViewDetails />} />
+<Route path="/admin/search-order" element={<AdminSearchOrderPage />} />
+
+
+</Routes>
+    </WishListProvider>
+
   );
 };
 

@@ -1,0 +1,38 @@
+.card-hover{
+    transition: all 0.3s ease-in-out;
+    border-radius:10px;
+    cursor: pointer;
+    min-height:120px; /* ensures all cards have same height */
+}
+
+/* creates shadow horizontally and scale the element upon hover */
+.card-hover:hover{
+    transform: scale(1.01);
+    box-shadow: 0px 10px 2px rgba(0,0,0,0.1);
+}
+
+/* creates white blur shadow effects around icons */
+.card-hover:hover i{
+    filter:drop-shadow(0 0 5px #fff)
+}
+
+.card-title{
+    position: relative;
+    display: inline-block;
+    min-height:48px;
+}
+
+.card-title::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0px;
+    width:0%;
+    height:2px;
+    background:white;
+    transition:width 0.2s ease-in-out;
+}
+
+.card-hover:hover .card-title::after{
+    width:100%;
+}

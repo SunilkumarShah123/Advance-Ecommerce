@@ -9,15 +9,18 @@ import {
   FaFileInvoice,
   FaTrash,
 } from "react-icons/fa";
+import CancelOrderModal from "../Css/CancelOrderModal";
 
 const SingleOrderDetail = () => {
   const userId = localStorage.getItem("userId");
   const [orderItems, setOrderItems] = useState([]);
   const [orderAddress, setOrderAddress] = useState(null);
-  const [grandTotal,setGrandTotal]=useState(0)
+  const [grandTotal, setGrandTotal] = useState(0);
   const { order_number } = useParams();
   const navigate = useNavigate();
+  const [showCancelModal, setShowCancelModel] = useState(false);
 
+  const handleCloseModal = async () => setShowCancelModel(false);
   // Fetch order items
   useEffect(() => {
     const fetchOrderedItems = async () => {
@@ -28,16 +31,19 @@ const SingleOrderDetail = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:8000/api/single-order-detail/${order_number}/`
+          `http://localhost:8000/api/single-order-detail/${order_number}/`,
         );
 
         const result = await response.json();
+        console.log(result);
 
         if (response.ok) {
           setOrderItems(result);
-          const grand_total=result.reduce((sum,item)=>( sum+item.food.item_price * item.quantity),0)
-          setGrandTotal(grand_total)
-          
+          const grand_total = result.reduce(
+            (sum, item) => sum + item.food.item_price * item.quantity,
+            0,
+          );
+          setGrandTotal(grand_total);
         } else {
           toast.error(result.error || "Error fetching order items");
         }
@@ -59,10 +65,11 @@ const SingleOrderDetail = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:8000/api/single-order-address-detail/${order_number}/`
+          `http://localhost:8000/api/single-order-address-detail/${order_number}/`,
         );
 
         const result = await response.json();
+        // console.log(result)
 
         if (response.ok) {
           setOrderAddress(result);
@@ -88,8 +95,6 @@ const SingleOrderDetail = () => {
     );
   }
 
-
-
   return (
     <PublicLayout>
       <div className="container py-5">
@@ -99,13 +104,11 @@ const SingleOrderDetail = () => {
         </h2>
 
         <div className="row">
-
           {/* LEFT SIDE FOOD ITEMS */}
           <div className="col-md-8">
             {orderItems.map((item, index) => (
               <div className="card shadow-sm p-3 mb-3" key={index}>
                 <div className="row align-items-center">
-
                   <div className="col-md-4">
                     <img
                       src={`http://localhost:8000/${item.food.image}`}
@@ -117,9 +120,7 @@ const SingleOrderDetail = () => {
                   <div className="col-md-8">
                     <h5>{item.food.item_name}</h5>
 
-                    <p className="text-muted">
-                      {item.food.item_description}
-                    </p>
+                    <p className="text-muted">{item.food.item_description}</p>
 
                     <p>
                       <strong>Price:</strong> ₹ {item.food.item_price}
@@ -129,7 +130,6 @@ const SingleOrderDetail = () => {
                       <strong>Quantity:</strong> {item.quantity}
                     </p>
                   </div>
-
                 </div>
               </div>
             ))}
@@ -138,7 +138,6 @@ const SingleOrderDetail = () => {
           {/* RIGHT SIDE DELIVERY DETAILS */}
           <div className="col-md-4">
             <div className="card shadow-sm p-4">
-
               <h5 className="mb-3">
                 <FaMapMarkerAlt className="text-danger me-2" />
                 Delivery Details
@@ -176,14 +175,35 @@ const SingleOrderDetail = () => {
                 Invoice
               </a>
 
-              <a href="#" className="btn btn-danger mt-3">
-                <FaTrash className="me-1" />
-                Cancel
-              </a>
-
+              {orderAddress &&
+                (orderAddress.order_final_status === "Waiting for the Order Confirmation" ||
+                orderAddress.order_final_status === "Order Confirmed" ||
+                orderAddress.order_final_status === "Food Being Prepared" ? (
+                  <>
+                    <CancelOrderModal
+                      show={showCancelModal}
+                      handleCloseModal={handleCloseModal}
+                      order_number={order_number}
+                      payment_mode={orderAddress.payment_mode}
+                    />
+                    <a
+                      onClick={() => setShowCancelModel(true)}
+                      className="btn btn-danger mt-3"
+                    >
+                      <FaTrash className="me-1" />
+                      Cancel
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-danger mt-2">
+                      Order Cannot Be Cancelled (Current Status:{" "}
+                      {orderAddress.order_final_status})
+                    </p>
+                  </>
+                ))}
             </div>
           </div>
-
         </div>
       </div>
 

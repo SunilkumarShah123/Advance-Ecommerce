@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { useCartCount } from "../Pages/CartContext";
+import { useCartCount } from "../Context/CartContext";
+import { useWishListCount } from "../Context/WishListContext";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaHome,
@@ -29,20 +30,33 @@ const PublicLayout = ({ children }) => {
   const userId = localStorage.getItem("userId");
   const name = localStorage.getItem("userName");
 
-  const { cartCount } = useCartCount();
+  const { cartCount,setCartCount } = useCartCount();
+  const {wishListCount,setWishListCount}=useWishListCount()
 
   useEffect(() => {
     if (userId) {
       setIsLoggedIn(true);
       setUserName(name);
+      fetchWishListCount()
+      // fetchCount()
     }
   }, [userId]);
+   
+  const fetchWishListCount=async ()=>{
+    if(userId){
+      const res=await fetch(`http://localhost:8000/api/get-wish-list/${userId}/`)
+      const data= await res.json()
+      setWishListCount(data.length)
+    }
+    
+  }
 
   const handleLogOut = () => {
     setIsLoggedIn(false);
     localStorage.removeItem("userId");
     localStorage.removeItem("userName");
-    localStorage.removeItem("cartItem")
+    setCartCount(0)
+    setWishListCount(0)
     navigate("/login");
   };
 
@@ -72,8 +86,8 @@ const PublicLayout = ({ children }) => {
                 </Link>
               </li>
 
-              <li className="nav-item">
-                <Link className="nav-link" to="/menu">
+              <li className="nav-item" >
+                <Link className="nav-link" to="/food-list">
                   <FaUtensils className="me-1" /> Menu
                 </Link>
               </li>
@@ -115,15 +129,24 @@ const PublicLayout = ({ children }) => {
                   <li className="nav-item me-2">
                     <Link className="nav-link position-relative" to="/cart">
                       <FaShoppingCart className="me-1" /> Cart{" "}
-                      <span className="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger">
-                        {cartCount}
-                      </span>
+                      {cartCount > 0 && (
+                          <span className="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger">
+                         {cartCount}
+                          </span>
+                      )}
+                    
                     </Link>
                   </li>
 
                   <li className="nav-item">
-                    <Link className="nav-link" to="/wishlist">
-                      <FaHeart className="me-1" /> Wishlist
+                    <Link className="nav-link position-relative" to="/wishlist">
+                      <FaHeart className="me-1" /> Wishlist{" "}
+                      {wishListCount > 0 && (
+                          <span className="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger">
+                         {wishListCount}
+                          </span>
+                      )}
+                    
                     </Link>
                   </li>
 

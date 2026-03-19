@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useCartCount } from "./CartContext";
+import { useCartCount } from "../Context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import PublicLayout from "../Components/PublicLayout";
 import { toast, ToastContainer } from "react-toastify";
@@ -23,7 +23,10 @@ const Cart = () => {
 
       if (response.ok) {
         setCartItem(data);
-
+        setCartCount(data.length)
+        
+        const totalQty = data.reduce((sum, item) => sum + item.quantity, 0);
+setCartCount(totalQty);
         const total_price = data.reduce(
           (sum, item) =>
             sum + Number(item.food.item_price) * Number(item.quantity),
@@ -31,13 +34,6 @@ const Cart = () => {
         );
 
         setGrandTotal(total_price);
-
-        const total_quantity = data.reduce(
-          (sum, item) => sum + Number(item.quantity),
-          0,
-        );
-
-        setCartCount(total_quantity);
       }
     } catch (error) {
       console.log("Error during connection", error);
@@ -66,7 +62,10 @@ const Cart = () => {
         }),
       });
 
+      
+
       if (response.ok) {
+   
         fetchCart();
       }
     } catch (error) {
@@ -92,6 +91,7 @@ const Cart = () => {
 
       if (response.ok) {
         toast.success(data.msg || "Item Removed Successfully");
+        setCartCount(data.length)
         fetchCart();
       } else {
         toast.warning(data.error || "Unable to Remove Item");
@@ -124,7 +124,7 @@ const Cart = () => {
 
   return (
     <PublicLayout>
-      <ToastContainer className="text-center" autoClose={2000} />
+      <ToastContainer className="text-center"/>
 
       <div className="container py-4">
         <h3 className="mb-4 text-center text-primary">

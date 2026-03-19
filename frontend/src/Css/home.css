@@ -15,3 +15,7 @@
          min-height: 300px;
      }
  }
+
+ .heart-hover:hover{
+    transform: scale(1.2);
+ }

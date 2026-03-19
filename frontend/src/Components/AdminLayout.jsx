@@ -6,6 +6,7 @@ import AdminHeader from './AdminHeader'
 
 const AdminLayout = ({children}) => {
     const [openSideBar,setOpenSideBar]=useState(true)
+    const [newOrderCount,setNewOrderCount]=useState(0)
 
     useEffect(()=>{
        const handleReSize=()=>{
@@ -18,6 +19,7 @@ const AdminLayout = ({children}) => {
        handleReSize()
 
        window.addEventListener("resize",handleReSize)
+       fetch("http://localhost:8000/api/not-confirmed-orders").then( res => res.json()).then(data => setNewOrderCount(data.length)).catch( error => console.log(error))
     },[])
 
     const toggleSideBar=()=>{
@@ -29,7 +31,7 @@ const AdminLayout = ({children}) => {
     <div className='d-flex'> 
     {openSideBar&&<AdminSideBar/>}
     <div id='page-content-wrapper' className={`w-100 ${openSideBar?'with-size':'with-resize'}`}>
-            <AdminHeader toggleSideBar={toggleSideBar} openSideBar={openSideBar} />
+            <AdminHeader toggleSideBar={toggleSideBar} openSideBar={openSideBar} newOrder={newOrderCount} />
         <div className='container-fluid mt-4'>
             {children}
         </div>

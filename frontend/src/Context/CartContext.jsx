@@ -8,8 +8,11 @@ export const CartProvider = ({ children }) => {
   // If yes → convert it to Number
   // If not → default value will be 0
   const [cartCount, setCartCount] = useState(()=>{
-    return Number(localStorage.getItem("cartCount"|| 0))
-  });
+      return Number(localStorage.getItem("cartCount"|| 0))
+     });
+  // ()=>{
+  //   return Number(localStorage.getItem("cartCount"|| 0))
+  // }
    // useEffect runs whenever cartCount changes
   // It stores the updated cartCount into localStorage
   // This ensures the value persists even after page refresh

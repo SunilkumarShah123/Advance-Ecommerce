@@ -43,7 +43,7 @@ const AdminSideBar = () => {
       </div>
 
       <div className="list-group list-group-flush">
-        <Link className="list-group-item list-group-item-action bg-dark text-light border-0">
+        <Link className="list-group-item list-group-item-action bg-dark text-light border-0" to="/admin-dashboard">
           <FaThLarge className="me-2" /> Dashboard
         </Link>
         <Link className="list-group-item list-group-item-action bg-dark text-light border-0" to={"/manage-register-user"}>
@@ -55,7 +55,7 @@ const AdminSideBar = () => {
           className="list-group-item list-group-item-action bg-dark text-light border-0"
         >
           <FaEdit className="me-2" />
-          Food Item {openMenu.category ? <FaChevronUp /> : <FaChevronDown />}
+          Category {openMenu.category ? <FaChevronUp /> : <FaChevronDown />}
         </button>
 
         {openMenu.category && (
