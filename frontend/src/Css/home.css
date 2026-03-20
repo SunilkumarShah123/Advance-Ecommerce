@@ -1,21 +1,86 @@
 
-.hero{
+.hero {
     min-width: 500px;
     background-repeat: no-repeat;
     background-size: cover;
-    color:white;
-    /* background-position: center; */
+    color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    
- }
- @media (max-width:768px){
-     .hero{
-         min-height: 300px;
-     }
- }
+  }
+  
+  @media (max-width: 768px) {
+    .hero {
+      min-height: 300px;
+    }
+  }
 
- .heart-hover:hover{
+  .heart-hover:hover {
     transform: scale(1.2);
- }
+  }
+  
+
+  .cardwrapper {
+    overflow: visible;
+  }
+  
+
+  .rating-wrapper {
+    position: relative;
+    margin-bottom: 6px;
+  }
+  
+
+  .hover-rating {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #e3e3e3;
+    border-radius: 10px;
+    padding: 12px 14px;
+    z-index: 1000;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.13);
+    animation: fadeIn 0.18s ease-in-out;
+  }
+  
+
+  .hover-rating .star-label {
+    min-width: 46px;
+    font-size: 13px;
+    color: #555;
+    white-space: nowrap;
+  }
+  
+
+  .hover-rating .star-count {
+    min-width: 18px;
+    text-align: right;
+    font-size: 13px;
+    color: #555;
+  }
+  
+
+  .hover-rating .progress {
+    background-color: #ececec;
+    border-radius: 4px;
+  }
+  
+
+  .hover-rating .progress-bar {
+    background-color: #ffc107 !important;
+    border-radius: 4px;
+  }
+  
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }

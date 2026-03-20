@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 const TrackOrder = () => {
   const [ordersNumber, setOrderNumber] = useState("");
   const [trackingData, setTrackingData] = useState([]);
+  const [orderStatus, setOrderStatus] = useState(null); 
   const { order_number } = useParams();
 
   useEffect(() => {
@@ -18,17 +19,34 @@ const TrackOrder = () => {
   }, [order_number]);
 
   const handleTrackingOrder = async (order_number) => {
+    if (!order_number) {
+      toast.warning("Please enter order number");
+      return;
+    }
+
     try {
+
       const response = await fetch(
         `http://localhost:8000/api/track-order/${order_number}/`
       );
       const data = await response.json();
 
+ 
+      const statusRes = await fetch(
+        `http://localhost:8000/api/single-order-address-detail/${order_number}/`
+      );
+      const statusData = await statusRes.json();
+
       if (response.ok) {
         setTrackingData(data);
       } else {
-        toast.error(data.error);
+        toast.error(data.error || "Failed to fetch tracking");
       }
+
+      if (statusRes.ok) {
+        setOrderStatus(statusData.order_final_status);
+      }
+
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong");
@@ -66,74 +84,80 @@ const TrackOrder = () => {
           <i className="fas fa-truck me-2"></i>Track
         </button>
 
-        {/* ===== TIMELINE ===== */}
-        {trackingData.length !== 0 && (
-          <div className="card p-4 shadow-sm rounded-4 border-0 mb-4">
-            <h5 className="mb-4">
-              <i className="fas fa-stream me-2"></i>Order Status Timeline
-            </h5>
+     
+        {orderStatus === null ? (
+          <h5 className="text-center text-muted">
+            Search with order number
+          </h5>
+        ) : trackingData && trackingData.length > 0 ? (
+          <>
+          
+            <div className="card p-4 shadow-sm rounded-4 border-0 mb-4">
+              <h5 className="mb-4">
+                <i className="fas fa-stream me-2"></i>Order Status Timeline
+              </h5>
 
-            <div className="timeline-container">
+              <div className="timeline-container">
+                {trackingData.map((track, index) => (
+                  <div className="timeline-step" key={track.id || index}>
+                    <div
+                      className="circle"
+                      style={{
+                        backgroundColor: getStatusColor(track.status),
+                      }}
+                    >
+                      <i className="fas fa-check"></i>
+                    </div>
+
+                    <div className="timeline-content text-center">
+                      <small className="fw-bold d-block">
+                        {track.status}
+                      </small>
+                      <small className="text-muted">
+                        {new Date(track.status_date).toLocaleDateString()}
+                      </small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+  
+            <div className="card p-4 shadow-sm rounded-4 border-0">
+              <h5 className="mb-4">Detailed History</h5>
+
               {trackingData.map((track, index) => (
-                <div className="timeline-step" key={index}>
-                  
-                  {/* Dynamic Circle Color */}
-                  <div
-                    className="circle"
-                    style={{
-                      backgroundColor: getStatusColor(track.status),
-                    }}
-                  >
-                    <i className="fas fa-check"></i>
+                <div
+                  key={track.id || index}
+                  className="d-flex justify-content-between align-items-center border-bottom py-3"
+                >
+                  <div>
+                    <span
+                      className="badge"
+                      style={{
+                        backgroundColor: getStatusColor(track.status),
+                        color: getTextColor(track.status),
+                      }}
+                    >
+                      {track.status}
+                    </span>
+
+                    <span className="ms-3 fw-semibold">
+                      {formatStatusText(track.status)}
+                    </span>
                   </div>
 
-                  <div className="timeline-content text-center">
-                    <small className="fw-bold d-block">
-                      {track.status}
-                    </small>
-                    <small className="text-muted">
-                      {new Date(track.status_date).toLocaleDateString()}
-                    </small>
-                  </div>
+                  <small className="text-muted">
+                    {new Date(track.status_date).toLocaleDateString()}
+                  </small>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* ===== DETAILED HISTORY ===== */}
-        {trackingData.length !== 0 && (
-          <div className="card p-4 shadow-sm rounded-4 border-0">
-            <h5 className="mb-4">Detailed History</h5>
-
-            {trackingData.map((track, index) => (
-              <div
-                key={index}
-                className="d-flex justify-content-between align-items-center border-bottom py-3"
-              >
-                <div>
-                  {/* ✅ FIXED dynamic color badge */}
-                  <span
-                    className="badge"
-                    style={{
-                      backgroundColor: getStatusColor(track.status),
-                      color: getTextColor(track.status),
-                    }}
-                  >
-                    {track.status}
-                  </span>
-
-                  <span className="ms-3 fw-semibold">
-                    {formatStatusText(track.status)}
-                  </span>
-                </div>
-
-                <small className="text-muted">
-                  {new Date(track.status_date).toLocaleDateString()}
-                </small>
-              </div>
-            ))}
-          </div>
+          </>
+        ) : (
+          <h5 className="text-center">
+            Order is Pending or not Confirmed by Restaurant
+          </h5>
         )}
       </div>
     </PublicLayout>
@@ -142,34 +166,43 @@ const TrackOrder = () => {
 
 export default TrackOrder;
 
-/* ===== Helper Functions ===== */
+
 
 const getStatusColor = (status) => {
+  if (!status) return "#6c757d";
+
   switch (status.toLowerCase().trim()) {
     case "order confirmed":
-      return "#17a2b8"; // cyan
+      return "#17a2b8";
     case "food being prepared":
-      return "#ffc107"; // yellow
+      return "#ffc107";
     case "food pickup":
-      return "#0d6efd"; // blue
+      return "#0d6efd";
     case "food delivered":
-      return "#198754"; // green
+      return "#198754";
     default:
       return "#6c757d";
   }
 };
 
 const getTextColor = (status) => {
+  if (!status) return "#fff";
+
   if (status.toLowerCase().includes("prepared")) {
-    return "#000"; // better visibility on yellow
+    return "#000";
   }
   return "#fff";
 };
 
 const formatStatusText = (status) => {
-  if (status === "order confirmed") return "Order Confirmed";
-  if (status === "food being prepared") return "Prepared";
-  if (status === "food pickup") return "Pickup";
-  if (status === "food delivered") return "Delivered";
+  if (!status) return "";
+
+  const s = status.toLowerCase();
+
+  if (s === "order confirmed") return "Order Confirmed";
+  if (s === "food being prepared") return "Prepared";
+  if (s === "food pickup") return "Pickup";
+  if (s === "food delivered") return "Delivered";
+
   return status;
 };
