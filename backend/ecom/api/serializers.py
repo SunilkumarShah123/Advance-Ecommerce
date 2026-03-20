@@ -75,6 +75,7 @@ class OrderedFoodDetailSerializer(serializers.ModelSerializer):
 
 #sends the detail of order foods in the order 
 class FoodOrderTrackingSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = FoodTracking
         fields = '__all__'
@@ -91,3 +92,27 @@ class WishListSerializer(serializers.ModelSerializer):
         model = Wishlist
         fields = ["food_id","item_name","item_price","image","description","is_available"]
 
+class ReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField()
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
+    food_name = serializers.CharField(source="food.item_name", read_only=True)
+
+    class Meta:
+        model = Review
+        fields = [
+            "id",
+            "user",
+            "user_id",
+            "user_name",
+            "rating",
+            "comment",
+            "created_at",
+            "food",
+            "food_name",
+        ]
+
+    def get_user_name(self, obj):
+        if obj.user:
+            full_name = f"{obj.user.first_name} {obj.user.last_name}".strip()
+            return full_name if full_name else obj.user.username
+        return "Unknown User"

@@ -1,12 +1,13 @@
 from collections import defaultdict
 from decimal import Decimal
+import re
 from time import strftime
 from django.shortcuts import get_object_or_404,render
 from django.contrib.auth.hashers import check_password, make_password#encrypt the plain password science normal created User models in model.py will store passowrd plain
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
-from django.db.models import Q, Count
+from django.db.models import Q, Count,Avg, aggregates
 from .models import *
 from .serializers import *
 import random #for randomly suffling food items and pick 9 product random and show in home page
@@ -1018,3 +1019,72 @@ def cancel_order(request,order_number):
     except Exception as e:
         print("Cancelling Error",e)
         return Response({"error":str(e)},status=404)
+
+    
+
+@api_view(['POST'])
+def add_food_review(request,food_id):
+     user_id=request.data.get("userId")
+     rating=request.data.get("rating")
+     comment=request.data.get("comment")
+
+     try:
+        user=User.objects.get(id=user_id)
+        food=Food.objects.get(id=food_id)
+     except (User.DoesNotExist,Food.DoesNotExist):
+        return Response({"error": "Food or User not Found"},status=404) 
+     Review.objects.create(
+        user=user,food=food,rating=rating,comment=comment
+     )
+     return Response({"msg":"Review Created Successfully"},status=201)
+
+@api_view(['GET'])
+def get_review_list(request,food_id):
+    reviews=Review.objects.filter(food_id=food_id)
+    serializer=ReviewSerializer(reviews,many=True)
+    return Response(serializer.data,status=200)
+
+@api_view(['PUT', 'DELETE'])
+def manage_review(request, review_id):
+    try:
+        review = Review.objects.get(id=review_id)
+    except Review.DoesNotExist:
+        return Response({"error": "Review not found"}, status=404)
+
+    if request.method == "DELETE":
+        review.delete()
+        return Response({"msg": "Review deleted successfully"}, status=200)
+
+    if request.method == "PUT":
+        serializer = ReviewSerializer(
+            review, data=request.data, partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "msg": "Review updated successfully",
+                   
+                },
+                status=200,
+            )
+        else:
+            return Response(serializer.errors, status=400)
+
+@api_view(['GET'])
+def get_star_rating_summary(request, food_id):
+    reviews = Review.objects.filter(food_id=food_id)
+
+    rating_summary = reviews.values("rating") \
+        .annotate(count=Count("rating")) \
+        .order_by("-rating")
+
+    avg_rating = reviews.aggregate(average=Avg("rating"))['average'] or 0
+    total_review = reviews.count()
+
+    return Response({
+        "average": round(avg_rating, 1),
+        "total_reviews": total_review,
+        "breakdown": {i["rating"]: i["count"] for i in rating_summary}
+    })

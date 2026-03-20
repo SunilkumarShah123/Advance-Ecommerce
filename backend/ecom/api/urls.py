@@ -95,4 +95,10 @@ urlpatterns = [
     path("track-order/<str:order_number>/",track_order,name="track_order"),
     path('cancel-order/<str:order_number>/',cancel_order,name="cancel_order"),
 
+    path("review/<int:food_id>/",get_review_list,name="get-review-list"),
+    path("review/add/<int:food_id>/",add_food_review,name="add_food_review"),
+    path('review/edit/<int:review_id>/', manage_review, name='edit_review'),
+    path('review/delete/<int:review_id>/', manage_review, name='delete_review'),
+    path("star-rating-summary/<int:food_id>/",get_star_rating_summary,name="get_start_rating_summary"),
+    
 ]
